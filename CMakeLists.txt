@@ -20,7 +20,7 @@ if (NOT raylib_FOUND) # If there's none, fetch and build raylib
     endif()
 endif()
 
-add_executable(Zoidar main.cpp src/Sprite.cpp src/Sprite.h src/Textures.cpp src/Textures.h src/Process.cpp src/Process.h)
+add_executable(Zoidar main.cpp src/Sprite.cpp src/Sprite.h src/Textures.cpp src/Textures.h src/Process.cpp src/Process.h lib/Perlin-Noise.hpp)
 
 target_link_libraries(${PROJECT_NAME} raylib)
 
