@@ -20,3 +20,10 @@ std::shared_ptr<Texture2D> Textures::get(const std::string filepath) {
     }
     return pos->second;
 }
+
+void Textures::clear() {
+    for(auto &texture : this->texture_cache) {
+        UnloadTexture(*texture.second);
+    }
+    this->texture_cache.clear();
+}

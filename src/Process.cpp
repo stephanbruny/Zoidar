@@ -4,7 +4,7 @@
 
 #include "Process.h"
 
-Process::Process() {}
+Process::Process() = default;
 
 void Process::addProcess(process_callack proc) {
     this->processes.push_back(proc);
