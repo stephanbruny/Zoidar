@@ -31,7 +31,7 @@ Tile Tilemap::getTile(int x, int y) {
 }
 
 void Tilemap::drawTile(float x, float y, int index) {
-    if (this->min_index > 0 && index < this->min_index) return;
+    if (this->min_index > 0 && index < this->min_index || index < 0) return;
     int w = this->texture->width / this->tile_size.width;
     int tx = index % w;
     int ty = index / w;
