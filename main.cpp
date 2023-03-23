@@ -132,6 +132,8 @@ int main(void)
     std::thread updateThread(onUpdate);
     updateThread.detach();
 
+    const Rectangle canvasSourceRect = (Rectangle) { 0, 0, (float)canvas.texture.width, (float)-canvas.texture.height };
+    const Rectangle canvasDestRect = Rectangle { 0, 0, 1280, 800 };
     while (!WindowShouldClose())
     {
         BeginTextureMode(canvas);
@@ -142,7 +144,7 @@ int main(void)
         EndTextureMode();
 
         BeginDrawing();
-        DrawTexturePro(canvas.texture, (Rectangle) { 0, 0, (float)canvas.texture.width, (float)-canvas.texture.height }, Rectangle { 0, 0, 1280, 800 }, Vector2 { 0, 0 }, 0, WHITE);
+        DrawTexturePro(canvas.texture, canvasSourceRect, canvasDestRect, Vector2 { 0, 0 }, 0, WHITE);
         EndDrawing();
     }
 
