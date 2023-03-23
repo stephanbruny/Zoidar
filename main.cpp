@@ -152,7 +152,6 @@ int main(void)
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 
-    textures->clear();
     CloseWindow();
 
     return 0;

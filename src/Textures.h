@@ -15,6 +15,7 @@ private:
 
 public:
     Textures();
+    ~Textures();
     void load(const std::string filepath);
     std::shared_ptr<Texture2D> get(std::string filepath);
     void clear();

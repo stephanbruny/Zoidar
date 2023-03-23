@@ -27,3 +27,7 @@ void Textures::clear() {
     }
     this->texture_cache.clear();
 }
+
+Textures::~Textures() {
+    this->clear();
+}
