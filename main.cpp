@@ -21,7 +21,7 @@ constexpr Vector2 getScreenResolution() {
     return Vector2 { 1280, 800 };
 }
 
-int main(void)
+int main()
 {
     auto isRunning = std::atomic<bool>(true);
     auto deltaTime = std::atomic<double>(0);
@@ -31,12 +31,12 @@ int main(void)
     Vector2 virtualResolution = getVirtualResolution();
     Vector2 screenResolution = getScreenResolution();
 
-    unsigned int time_ui = (unsigned int)( time(NULL) );
+    auto time_ui = (unsigned int)( time(nullptr) );
     const siv::PerlinNoise::seed_type seed = time_ui;
 
     const siv::PerlinNoise perlin{ seed };
 
-    unsigned int time_ui_2 = (unsigned int)( time(NULL) );
+    auto time_ui_2 = (unsigned int)( time(nullptr) );
     const siv::PerlinNoise::seed_type seed_2 = time_ui_2 + time_ui;
     const siv::PerlinNoise perlin_2{ seed_2 };
 
