@@ -6,6 +6,7 @@
 #include "src/Process.h"
 #include "src/Tilemap.hpp"
 #include "lib/Perlin-Noise.hpp"
+#include "src/WFCMap.hpp"
 
 constexpr Color CLEAR_COLOR = Color { 0, 0, 0, 255 };
 constexpr double UPDATE_DELAY = 0.008;
@@ -27,6 +28,8 @@ int main()
     auto deltaTime = std::atomic<double>(0);
     auto currentTime = std::atomic<double>(0);
     auto isUpdateFinished = std::atomic<bool>(false);
+    auto wfcMap = WFCMap(20 * 14, 20);
+
 
     Vector2 virtualResolution = getVirtualResolution();
     Vector2 screenResolution = getScreenResolution();
@@ -48,7 +51,7 @@ int main()
 
     auto textures = std::make_unique<Textures>();
     textures->load("assets/ship.png");
-    textures->load("assets/tiles.png");
+    textures->load("assets/tiles-extended.png");
     textures->load("assets/tiles-obstacles.png");
 
     auto sprite = std::make_unique<Sprite>(textures->get("assets/ship.png"));
@@ -57,7 +60,7 @@ int main()
 
     Tilemap tilemap(20, 14, 16, 16);
     Tilemap tilemap_2(20, 14, 16, 16);
-    tilemap.setTexture(textures->get("assets/tiles.png"));
+    tilemap.setTexture(textures->get("assets/tiles-extended.png"));
     tilemap_2.setTexture(textures->get("assets/tiles-obstacles.png"));
 
     int map_x = 0;
@@ -65,11 +68,12 @@ int main()
     float map_z = 0.01;
 
     auto createMap = [&](){
-        for (int x = 0; x < tilemap.size.width; x++) {
-            for (int y = 0; y < tilemap.size.height; y++) {
-                const double noise = perlin.noise2D(((x + map_x) * map_z), ((y + map_y) * map_z)) * 10;
-                tilemap.setTile(x, y, 0, (int)noise);
-            }
+        wfcMap.generate();
+        auto map = wfcMap.getMap();
+        for (int i = 0; i < map.size(); i++) {
+            int x = i % wfcMap.map_width;
+            int y = i / wfcMap.map_width;
+            tilemap.setTile(x, y, 0, map[i]);
         }
     };
 
@@ -105,8 +109,11 @@ int main()
             map_x += mx;
             map_y += my;
             map_z = mz;
+            // createMap();
+            // createUpperLayerMap();
+        }
+        if (IsKeyDown(KEY_N)) {
             createMap();
-            createUpperLayerMap();
         }
         return true;
     };
@@ -139,7 +146,7 @@ int main()
         BeginTextureMode(canvas);
         ClearBackground(CLEAR_COLOR);
         tilemap.draw();
-        tilemap_2.draw();
+        // tilemap_2.draw();
         sprite->draw();
         EndTextureMode();
 
