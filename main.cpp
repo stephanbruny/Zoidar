@@ -67,14 +67,19 @@ int main()
     int map_y = 0;
     float map_z = 0.01;
 
-    auto createMap = [&](){
-        wfcMap.generate();
+    auto createTileMap = [&]() {
         auto map = wfcMap.getMap();
         for (int i = 0; i < map.size(); i++) {
             int x = i % wfcMap.map_width;
             int y = i / wfcMap.map_width;
             tilemap.setTile(x, y, 0, map[i]);
         }
+    };
+
+    auto createMap = [&](bool regenerate = false){
+        if (!regenerate) wfcMap.generate(); else wfcMap.regenerate();
+        auto map = wfcMap.getMap();
+        createTileMap();
     };
 
     auto createUpperLayerMap = [&](){
@@ -114,6 +119,17 @@ int main()
         }
         if (IsKeyDown(KEY_N)) {
             createMap();
+        }
+        if (IsKeyDown(KEY_M)) {
+            createMap(true);
+        }
+        if (IsKeyDown(KEY_I)) {
+            wfcMap.invalidateMap();
+        }
+        if (IsKeyDown(KEY_R)) {
+            wfcMap.randomizeOne();
+            wfcMap.render();
+            createTileMap();
         }
         return true;
     };
