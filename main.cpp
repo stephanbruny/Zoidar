@@ -63,9 +63,9 @@ int main()
     SetTargetFPS(60);
 
     Tilemap tilemap(WorldWidth, WorldHeight, 16, 16);
-    Tilemap tilemap_2(20, 14, 16, 16);
+    Tilemap tilemap_2(WorldWidth, WorldHeight, 16, 16);
     tilemap.setTexture(textures->get("assets/tiles-extended.png"));
-    tilemap_2.setTexture(textures->get("assets/tiles-obstacles.png"));
+    tilemap_2.setTexture(textures->get("assets/tiles-extended.png"));
 
     int map_x = 0;
     int map_y = 0;
@@ -86,17 +86,11 @@ int main()
     };
 
     auto createUpperLayerMap = [&](){
-        for (int x = 0; x < tilemap_2.size.width; x++) {
-            for (int y = 0; y < tilemap_2.size.height; y++) {
-                const int lower_index = tilemap.getTile(x, y).index;
-                if (lower_index > 3) {
-                    const double noise = perlin_2.noise2D_01(((x + map_x) * 0.1), ((y + map_y) * 0.1)) * 10;
-                    const int n = (int)noise;
-                    tilemap_2.setTile(x, y, 0, n);
-                } else {
-                    tilemap_2.setTile(x, y, 0, -1);
-                }
-            }
+        auto layerData = worldGenerator.renderUpperLayer();
+        for (int i = 0; i < layerData.size(); i++) {
+            int x = i % worldGenerator.map_width;
+            int y = i / worldGenerator.map_width;
+            tilemap_2.setTile(x, y, 0, layerData[i]);
         }
     };
 
@@ -106,20 +100,20 @@ int main()
     auto onUpdateMap = [&](double dt){
         int mx = 0;
         int my = 0;
-        float scrollSpeed = 128.0;
+        float scrollSpeed = 128.0f * (float)dt;
         bool updateNeeded = false;
         float mz = map_z;
         if (IsKeyDown(KEY_RIGHT)) {
-            mapOffset.x += scrollSpeed * dt;
+            mapOffset.x += scrollSpeed;
         };
         if (IsKeyDown(KEY_LEFT)) {
-            mapOffset.x -= scrollSpeed * dt;
+            mapOffset.x -= scrollSpeed;
         }
         if (IsKeyDown(KEY_UP)) {
-            mapOffset.y -= scrollSpeed * dt;
+            mapOffset.y -= scrollSpeed;
         }
         if (IsKeyDown(KEY_DOWN)) {
-            mapOffset.y += scrollSpeed * dt;
+            mapOffset.y += scrollSpeed;
         }
 
         if (IsKeyDown(KEY_N)) {
@@ -133,6 +127,7 @@ int main()
         }
         if (IsKeyDown(KEY_R)) {
             createMap();
+            createUpperLayerMap();
             createTileMap();
         }
 
@@ -170,8 +165,8 @@ int main()
     {
         BeginTextureMode(canvas);
         ClearBackground(CLEAR_COLOR);
-        tilemap.draw(-mapOffset.x, -mapOffset.y);
-        // tilemap_2.draw();
+        tilemap.draw(-mapOffset.x, -mapOffset.y, virtualResolution.x, virtualResolution.y);
+        tilemap_2.draw(-mapOffset.x, -mapOffset.y, virtualResolution.x, virtualResolution.y);
         sprite->draw();
         EndTextureMode();
 

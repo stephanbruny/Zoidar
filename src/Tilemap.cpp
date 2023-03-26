@@ -35,22 +35,32 @@ void Tilemap::drawTile(float x, float y, int index) {
     int w = this->texture->width / this->tile_size.width;
     int tx = index % w;
     int ty = index / w;
-    float ox = tx * this->tile_size.width;
-    float oy = ty * this->tile_size.height;
+    int ox = tx * this->tile_size.width;
+    int oy = ty * this->tile_size.height;
     DrawTextureRec(
         *this->texture,
-        Rectangle { ox, oy, (float)this->tile_size.width, (float)this->tile_size.height },
+        Rectangle { (float)ox, (float)oy, (float)this->tile_size.width, (float)this->tile_size.height },
         Vector2 { x, y },
         WHITE
     );
 }
 
-void Tilemap::draw(float offsetX = 0, float offsetY = 0) {
+void Tilemap::draw(float offsetX = 0, float offsetY = 0, int max_width = 0, int max_height = 0) {
     int current_tile_index = 0;
+    int ox = -offsetX / tile_size.width;
+    int oy = -offsetY / tile_size.height;
+    int max_tx = ox + max_width / tile_size.width;
+    int max_ty = oy + max_height / tile_size.width;
+
+
     for (auto &tile : this->tiles) {
         int tx = current_tile_index % this->size.width;
         int ty = current_tile_index / this->size.width;
-        this->drawTile(tx * this->tile_size.width + offsetX, ty * this->tile_size.height + offsetY, tile.index);
+        if (tx < ox || ty < oy || tx > max_tx || ty > max_ty) { current_tile_index++; continue; }
+        if (tx > max_tx && ty > max_ty) break;
+        float posX = (float)tx * (float)this->tile_size.width + offsetX;
+        float posY = (float)ty * (float)this->tile_size.height + offsetY;
+        if (tile.index >= 0) this->drawTile(posX, posY, tile.index);
         current_tile_index++;
     }
 }

@@ -48,15 +48,55 @@ const map<TileType, vector<int>> TileVariants = {
 };
 
 const map<vector<TileType>, int> TilePatterns = {
-        { { Sand, Sand, Water, Water }, 78 },
-        { { Any, Sand, Any, Water }, 6 },
+        { { Sand, Sand, Sand, Water, Water }, 78 },
+        { { Sand, Sand, Sand, Water, Sand }, 22 },
+        { { Any, Sand, Sand, Any, Water }, 6 },
+        { { Sand, Sand, Sand, Sand, Water }, 6 },
+        { { Water, Sand, Sand, Sand, Sand }, 24 },
+        { { Sand, Water, Sand, Sand, Sand }, 40 },
+        { { Water, Water, Sand, Sand, Sand }, 60 },
+        { { Sand, Water, Sand, Water, Sand }, 61 },
+        { { Water, Sand, Sand, Sand, Water }, 77 },
 
-        { { Any, Any, Sand, Grass }, 25 },
-        { { Sand, Any, Grass, Sand }, 25 },
-        { { Sand, Sand, Grass, Sand }, 25 },
+        // { { Any, Any, Sand, Grass }, 25 },
+        { { Sand, Any, Sand, Grass, Sand }, 25 },
+        { { Sand, Sand, Sand, Grass, Sand }, 25 },
+        { { Sand, Sand, Sand, Grass, Grass }, 80 },
+        { { Sand, Sand, Sand, Sand, Grass }, 9 },
+        { { Sand, Grass, Sand, Grass, Sand }, 63 },
+        { { Sand, Grass, Sand, Sand, Sand }, 43 },
+        { { Grass, Grass, Sand, Sand, Sand }, 62 },
+        { { Grass, Sand, Sand, Sand, Sand }, 27 },
+        { { Grass, Sand, Sand, Sand, Grass }, 79 },
 
-        { { Sand, Sand, Grass, Grass }, 80 },
-        { { Sand, Sand, Sand, Grass }, 9 },
+        // Grass<>Forest
+        { { Grass, Grass, Wood, Grass, Wood }, 95 },
+        { { Grass, Grass, Wood, Wood, Wood }, 94 },
+        { { Wood, Wood, Wood, Grass, Wood }, 68 },
+        { { Grass, Wood, Wood, Wood, Wood }, 70 },
+        { { Wood, Wood, Wood, Grass, Grass }, 112 },
+        { { Wood, Grass, Wood, Grass, Wood }, 95 },
+        { { Wood, Grass, Wood, Wood, Wood }, 86 },
+        { { Wood, Wood, Wood, Wood, Grass }, 52 },
+        { { Grass, Wood, Wood, Wood, Grass }, 111 },
+
+        // Wood<>Mountain
+        { { Wood, Wood, Mountain, Mountain, Mountain }, 98 },
+        { { Mountain, Wood, Mountain, Wood, Mountain }, 99 },
+        { { Mountain, Wood, Mountain, Wood, Mountain }, 99 },
+        { { Mountain, Mountain, Mountain, Wood, Wood }, 116 },
+        { { Wood, Mountain, Mountain, Mountain, Wood }, 115 },
+        { { Mountain, Wood, Mountain, Mountain, Mountain }, 92 },
+        { { Mountain, Mountain, Mountain, Wood, Mountain }, 74 },
+        { { Mountain, Mountain, Mountain, Mountain, Wood }, 58 },
+        { { Wood, Mountain, Mountain, Mountain, Mountain }, 76 },
+};
+
+const map<TileType, vector<int>> LayerTiles = {
+        { Sand, { 119, 120, 121 } },
+        { Grass, { 122, 123, 124 } },
+        { Wood, { 125, 126, 127 } },
+        { Mountain, { 136, 137, 138 } },
 };
 
 class WorldGenerator {
@@ -67,8 +107,9 @@ public:
     siv::PerlinNoise perlinNoise;
 
     vector<ProtoTile> tilemap;
-    int map_width;
-    int map_height;
+    vector<ProtoTile> layer;
+    int map_width {};
+    int map_height {};
 
     int offset_x = 0;
     int offset_y = 0;
@@ -106,30 +147,61 @@ public:
         map_width = width;
         map_height = height;
 
-        this->generatePerlinNoise(this->offset_x, this->offset_y);
+        this->generateBase();
         this->linkTileNeighbors();
         this->randomizeVariants();
         this->smoothEdges();
+
+        this->generateLayer(); // Generate second layer
     }
 
-    void generatePerlinNoise(int ox, int oy, double depth = 0.033) {
+    void generateBase() {
+        auto values = generatePerlinNoise((int)TileType::Unknown, 0, 0);
+        int i = 0;
+        for (auto &id : values) {
+            tilemap[i].id = id;
+            tilemap[i].type = (TileType)id;
+            i++;
+        }
+    }
+
+    void generateLayer() {
+        layer.clear();
+        auto values = generatePerlinNoise(10, 0, 0, 2.66);
+
+        for (int i = 0; i < values.size(); i++) {
+            layer.push_back({ .id = -1, .type = TileType::Unknown });
+            TileType type = tilemap[i].type;
+            auto candidates = LayerTiles.find(type);
+            if (candidates != LayerTiles.end()) {
+                auto candidateList = candidates->second;
+                int randIndex = getRandomIndex(candidateList);
+                if (values[i] < (int)type * 2) {
+                    layer[i].id = candidateList[randIndex];
+                    layer[i].type = type;
+                }
+            }
+        }
+    }
+
+    [[nodiscard]] vector<int> generatePerlinNoise(int max, int ox, int oy, double depth = 0.033) const {
+        vector<int> result;
         for (int i = 0; i < tilemap.size(); i++) {
             int x = i % map_width;
             int y = i / map_width;
 
             // double noise = perlinNoise.noise2D((x + ox) * 0.01, (y + oy) * 0.01) * (int)TileType::Unknown;
-            double noise = perlinNoise.noise2D_01((x + ox) * depth, (y + oy) * depth) * (int)TileType::Unknown;
+            double noise = perlinNoise.noise2D_01((x + ox) * depth, (y + oy) * depth) * max;
 
             int id = noise < 0 ? 0 : (int)noise;
-
-            tilemap[i].id = id;
-            tilemap[i].type = (TileType)id;
+            result.push_back(id);
         }
+        return result;
     }
 
     // This is super slow
     void linkTileNeighbors() {
-        cout << "Linking neigbors" << endl;
+        cout << "Linking neighbors" << endl;
         auto size = tilemap.size();
         int i = 0;
         for (auto &tile : tilemap) {
@@ -146,7 +218,7 @@ public:
 
     void randomizeVariants() {
         for (auto &tile : tilemap) {
-            TileType type = (TileType)tile.id;
+            auto type = (TileType)tile.id;
             auto variants = TileVariants.find(type);
             if (variants != TileVariants.end()) {
                 auto list = variants->second;
@@ -157,8 +229,8 @@ public:
         }
     }
 
-    int determineTileId(ProtoTile &tile) {
-        vector<TileType> basePattern = { tile.left, tile.top, tile.right, tile.bottom };
+    static int determineTileId(ProtoTile &tile) {
+        vector<TileType> basePattern = { tile.left, tile.top, tile.type, tile.right, tile.bottom };
         auto match = TilePatterns.find(basePattern);
         if (match != TilePatterns.end()) {
             return match->second;
@@ -176,6 +248,14 @@ public:
     vector<int> render() {
         vector<int> result;
         for (auto &tile : tilemap) {
+            result.push_back(tile.id);
+        }
+        return result;
+    }
+
+    vector<int> renderUpperLayer() {
+        vector<int> result;
+        for (auto &tile : layer) {
             result.push_back(tile.id);
         }
         return result;
