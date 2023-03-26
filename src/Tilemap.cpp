@@ -58,8 +58,8 @@ void Tilemap::draw(float offsetX = 0, float offsetY = 0, int max_width = 0, int 
         int ty = current_tile_index / this->size.width;
         if (tx < ox || ty < oy || tx > max_tx || ty > max_ty) { current_tile_index++; continue; }
         if (tx > max_tx && ty > max_ty) break;
-        float posX = (float)tx * (float)this->tile_size.width + offsetX;
-        float posY = (float)ty * (float)this->tile_size.height + offsetY;
+        int posX = tx * this->tile_size.width + (int)offsetX;
+        int posY = ty * this->tile_size.height + (int)offsetY;
         if (tile.index >= 0) this->drawTile(posX, posY, tile.index);
         current_tile_index++;
     }
