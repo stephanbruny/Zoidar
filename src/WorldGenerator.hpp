@@ -186,6 +186,7 @@ public:
 
     [[nodiscard]] vector<int> generatePerlinNoise(int max, int ox, int oy, double depth = 0.033) const {
         vector<int> result;
+        cout << "generate perlin noise" << endl;
         for (int i = 0; i < tilemap.size(); i++) {
             int x = i % map_width;
             int y = i / map_width;
@@ -203,8 +204,7 @@ public:
     void linkTileNeighbors() {
         cout << "Linking neighbors" << endl;
         auto size = tilemap.size();
-        int i = 0;
-        for (auto &tile : tilemap) {
+        for (int i = 0; i < tilemap.size(); i++) {
             int x = i % map_width;
             int y = i / map_width;
 
@@ -212,11 +212,11 @@ public:
             tilemap[i].top = getTileAt(x, y - 1).type;
             tilemap[i].right = getTileAt(x + 1, y).type;
             tilemap[i].bottom = getTileAt(x, y + 1).type;
-            i++;
         }
     }
 
     void randomizeVariants() {
+        cout << "randomize variants" << endl;
         for (auto &tile : tilemap) {
             auto type = (TileType)tile.id;
             auto variants = TileVariants.find(type);
@@ -240,8 +240,8 @@ public:
 
     void smoothEdges() {
         cout << "Smoothing edges" << endl;
-        for (auto &tile : tilemap) {
-            tile.id = determineTileId(tile);
+        for (int i = 0; i < tilemap.size(); i++) {
+            tilemap[i].id = determineTileId(tilemap[i]);
         }
     }
 
