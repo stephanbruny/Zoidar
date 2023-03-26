@@ -6,7 +6,7 @@
 #include "src/Process.h"
 #include "src/Tilemap.hpp"
 #include "lib/Perlin-Noise.hpp"
-#include "src/WFCMap.hpp"
+#include "src/WorldGenerator.hpp"
 
 constexpr Color CLEAR_COLOR = Color { 0, 0, 0, 255 };
 constexpr double UPDATE_DELAY = 0.008;
@@ -22,13 +22,17 @@ constexpr Vector2 getScreenResolution() {
     return Vector2 { 1280, 800 };
 }
 
+const int WorldWidth = 1024;
+const int WorldHeight = 1024;
+
 int main()
 {
+    Vector2 mapOffset = { 0, 0 };
     auto isRunning = std::atomic<bool>(true);
     auto deltaTime = std::atomic<double>(0);
     auto currentTime = std::atomic<double>(0);
     auto isUpdateFinished = std::atomic<bool>(false);
-    auto wfcMap = WFCMap(20 * 14, 20);
+    auto worldGenerator = WorldGenerator();
 
 
     Vector2 virtualResolution = getVirtualResolution();
@@ -58,7 +62,7 @@ int main()
     sprite->move(640, 300);
     SetTargetFPS(60);
 
-    Tilemap tilemap(20, 14, 16, 16);
+    Tilemap tilemap(WorldWidth, WorldHeight, 16, 16);
     Tilemap tilemap_2(20, 14, 16, 16);
     tilemap.setTexture(textures->get("assets/tiles-extended.png"));
     tilemap_2.setTexture(textures->get("assets/tiles-obstacles.png"));
@@ -68,17 +72,16 @@ int main()
     float map_z = 0.01;
 
     auto createTileMap = [&]() {
-        auto map = wfcMap.getMap();
+        auto map = worldGenerator.render();
         for (int i = 0; i < map.size(); i++) {
-            int x = i % wfcMap.map_width;
-            int y = i / wfcMap.map_width;
+            int x = i % worldGenerator.map_width;
+            int y = i / worldGenerator.map_width;
             tilemap.setTile(x, y, 0, map[i]);
         }
     };
 
     auto createMap = [&](bool regenerate = false){
-        if (!regenerate) wfcMap.generate(); else wfcMap.regenerate();
-        auto map = wfcMap.getMap();
+        worldGenerator.generate(WorldWidth, WorldHeight);
         createTileMap();
     };
 
@@ -103,20 +106,22 @@ int main()
     auto onUpdateMap = [&](double dt){
         int mx = 0;
         int my = 0;
+        float scrollSpeed = 128.0;
+        bool updateNeeded = false;
         float mz = map_z;
-        if (IsKeyDown(KEY_RIGHT)) mx = 1;
-        if (IsKeyDown(KEY_LEFT)) mx = -1;
-        if (IsKeyDown(KEY_UP)) my = -1;
-        if (IsKeyDown(KEY_DOWN)) my = 1;
-        if (IsKeyDown(KEY_Q)) mz /= 1.001;
-        if (IsKeyDown(KEY_A)) mz *= 1.001;
-        if (mx != 0 || my != 0 || mz != 0) {
-            map_x += mx;
-            map_y += my;
-            map_z = mz;
-            // createMap();
-            // createUpperLayerMap();
+        if (IsKeyDown(KEY_RIGHT)) {
+            mapOffset.x += scrollSpeed * dt;
+        };
+        if (IsKeyDown(KEY_LEFT)) {
+            mapOffset.x -= scrollSpeed * dt;
         }
+        if (IsKeyDown(KEY_UP)) {
+            mapOffset.y -= scrollSpeed * dt;
+        }
+        if (IsKeyDown(KEY_DOWN)) {
+            mapOffset.y += scrollSpeed * dt;
+        }
+
         if (IsKeyDown(KEY_N)) {
             createMap();
         }
@@ -124,13 +129,17 @@ int main()
             createMap(true);
         }
         if (IsKeyDown(KEY_I)) {
-            wfcMap.invalidateMap();
+            // wfcMap.invalidateMap();
         }
         if (IsKeyDown(KEY_R)) {
-            wfcMap.randomizeOne();
-            wfcMap.render();
+            createMap();
             createTileMap();
         }
+
+        if (mapOffset.x < 0) mapOffset.x = 0;
+        if (mapOffset.y < 0) mapOffset.y = 0;
+
+
         return true;
     };
 
@@ -161,7 +170,7 @@ int main()
     {
         BeginTextureMode(canvas);
         ClearBackground(CLEAR_COLOR);
-        tilemap.draw();
+        tilemap.draw(-mapOffset.x, -mapOffset.y);
         // tilemap_2.draw();
         sprite->draw();
         EndTextureMode();

@@ -28,7 +28,7 @@ public:
     Tile getTile(int x, int y);
 
     void drawTile(float x, float y, int index);
-    void draw();
+    void draw(float offsetX, float offsetY);
 
     void setMinIndex(int i);
 

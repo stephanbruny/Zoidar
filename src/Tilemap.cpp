@@ -45,12 +45,12 @@ void Tilemap::drawTile(float x, float y, int index) {
     );
 }
 
-void Tilemap::draw() {
+void Tilemap::draw(float offsetX = 0, float offsetY = 0) {
     int current_tile_index = 0;
     for (auto &tile : this->tiles) {
         int tx = current_tile_index % this->size.width;
         int ty = current_tile_index / this->size.width;
-        this->drawTile(tx * this->tile_size.width, ty * this->tile_size.height, tile.index);
+        this->drawTile(tx * this->tile_size.width + offsetX, ty * this->tile_size.height + offsetY, tile.index);
         current_tile_index++;
     }
 }
