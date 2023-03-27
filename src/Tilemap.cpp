@@ -20,7 +20,7 @@ void Tilemap::setTexture(std::shared_ptr<Texture2D> texture) {
     this->texture = texture;
 }
 
-void Tilemap::setTile(int x, int y, int id, int index) {
+void Tilemap::setTile(int x, int y, int id, uint8_t index) {
     int position = y * this->size.width + x;
     this->tiles[position] = { id, index };
 }

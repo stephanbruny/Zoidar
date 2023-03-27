@@ -16,7 +16,7 @@ struct Size {
 
 struct Tile {
     int id;
-    int index;
+    uint8_t index;
 };
 
 class Tilemap {
@@ -24,7 +24,7 @@ public:
     Tilemap(int width, int height, int tile_width, int tile_height);
 
     void setTexture(std::shared_ptr<Texture2D> texture);
-    void setTile(int x, int y, int id, int index);
+    void setTile(int x, int y, int id, uint8_t index);
     Tile getTile(int x, int y);
 
     void drawTile(float x, float y, int index);
