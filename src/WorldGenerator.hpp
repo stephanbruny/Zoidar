@@ -102,6 +102,7 @@ const map<TileType, vector<int>> LayerTiles = {
 const map<vector<int>, vector<int>> LayerCombinations = {
         { { 126, 126, 126, 126 }, { 132, 133, 149, 150 } },
         { { 136, 136, 136, 136 }, { 134, 135, 151, 152 } },
+        { { 137, 137, 137, 137 }, { 168, 169, 185, 186 } },
 };
 
 class WorldGenerator {

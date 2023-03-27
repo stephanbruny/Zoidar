@@ -32,8 +32,6 @@ int main()
     auto deltaTime = std::atomic<double>(0);
     auto currentTime = std::atomic<double>(0);
     auto isUpdateFinished = std::atomic<bool>(false);
-    auto worldGenerator = WorldGenerator();
-
 
     Vector2 virtualResolution = getVirtualResolution();
     Vector2 screenResolution = getScreenResolution();
@@ -72,30 +70,28 @@ int main()
     float map_z = 0.01;
 
     auto createTileMap = [&]() {
-        auto map = worldGenerator.render();
+        auto generator = WorldGenerator();
+        generator.generate(WorldWidth, WorldHeight);
+        auto map = generator.render();
+
         for (int i = 0; i < map.size(); i++) {
-            int x = i % worldGenerator.map_width;
-            int y = i / worldGenerator.map_width;
+            int x = i % generator.map_width;
+            int y = i / generator.map_width;
             tilemap.setTile(x, y, 0, map[i]);
         }
-    };
-
-    auto createMap = [&](bool regenerate = false){
-        worldGenerator.generate(WorldWidth, WorldHeight);
-        createTileMap();
-    };
-
-    auto createUpperLayerMap = [&](){
-        auto layerData = worldGenerator.renderUpperLayer();
+        auto layerData = generator.renderUpperLayer();
         for (int i = 0; i < layerData.size(); i++) {
-            int x = i % worldGenerator.map_width;
-            int y = i / worldGenerator.map_width;
+            int x = i % generator.map_width;
+            int y = i / generator.map_width;
             tilemap_2.setTile(x, y, 0, layerData[i]);
         }
     };
 
+    auto createMap = [&](bool regenerate = false){
+        createTileMap();
+    };
+
     createMap();
-    createUpperLayerMap();
 
     auto onUpdateMap = [&](double dt){
         int mx = 0;
@@ -127,8 +123,6 @@ int main()
         }
         if (IsKeyDown(KEY_R)) {
             createMap();
-            createUpperLayerMap();
-            createTileMap();
         }
 
         if (mapOffset.x < 0) mapOffset.x = 0;

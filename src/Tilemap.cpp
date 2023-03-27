@@ -17,10 +17,10 @@ Tilemap::Tilemap(int width, int height, int tile_width, int tile_height) {
 }
 
 void Tilemap::setTexture(std::shared_ptr<Texture2D> texture) {
-    this->texture = texture;
+    this->texture = std::move(texture);
 }
 
-void Tilemap::setTile(int x, int y, int id, uint8_t index) {
+void Tilemap::setTile(int x, int y, uint8_t id, uint8_t index) {
     int position = y * this->size.width + x;
     this->tiles[position] = { id, index };
 }
