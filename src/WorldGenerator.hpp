@@ -32,10 +32,10 @@ struct ProtoTile {
     bool isNonTile { false };
     bool visited { false };
     bool varied { false };
-    TileType left;
-    TileType top;
-    TileType right;
-    TileType bottom;
+    TileType left { Any };
+    TileType top { Any };
+    TileType right { Any };
+    TileType bottom { Any };
     TileType type { TileType::Unknown };
 };
 
@@ -99,6 +99,11 @@ const map<TileType, vector<int>> LayerTiles = {
         { Mountain, { 136, 137, 138 } },
 };
 
+const map<vector<int>, vector<int>> LayerCombinations = {
+        { { 126, 126, 126, 126 }, { 132, 133, 149, 150 } },
+        { { 136, 136, 136, 136 }, { 134, 135, 151, 152 } },
+};
+
 class WorldGenerator {
 public:
     random_device randomDevice;
@@ -126,6 +131,17 @@ public:
         return this->tilemap[index];
     }
 
+    ProtoTile getUpperTileAt(int x, int y) {
+        int index = y * this->map_width + x;
+        if (index < 0 || index > tilemap.size() - 1) return { .isNonTile = true, .type = Any };
+        return this->layer[index];
+    }
+
+    void setUpperLayerTileId(int x, int y, int id) {
+        int index = y * this->map_width + x;
+        this->layer[index].id = id;
+    }
+
     void initializePerlinNoise() {
         uniform_int_distribution dist(0, INT_MAX);
         this->perlinNoise = siv::PerlinNoise(dist(this->randomGenerator));
@@ -151,8 +167,8 @@ public:
         this->linkTileNeighbors();
         this->randomizeVariants();
         this->smoothEdges();
-
         this->generateLayer(); // Generate second layer
+        this->buildUpperLayerCombinations();
     }
 
     void generateBase() {
@@ -242,6 +258,29 @@ public:
         cout << "Smoothing edges" << endl;
         for (int i = 0; i < tilemap.size(); i++) {
             tilemap[i].id = determineTileId(tilemap[i]);
+        }
+    }
+
+    void buildUpperLayerCombinations() {
+        for(int i = 0; i < layer.size(); i += 2) {
+            int x = i % map_width;
+            int y = i / map_width;
+
+            vector<int> group = {
+                    getUpperTileAt(x, y).id,
+                    getUpperTileAt(x + 1, y).id,
+                    getUpperTileAt(x, y + 1).id,
+                    getUpperTileAt(x + 1, y + 1).id,
+            };
+
+            auto match = LayerCombinations.find(group);
+            if (match != LayerCombinations.end()) {
+                auto replacement = match->second;
+                setUpperLayerTileId(x, y, replacement[0]);
+                setUpperLayerTileId(x + 1, y, replacement[1]);
+                setUpperLayerTileId(x, y + 1, replacement[2]);
+                setUpperLayerTileId(x + 1, y + 1, replacement[3]);
+            }
         }
     }
 
