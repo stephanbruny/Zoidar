@@ -20,7 +20,7 @@ if (NOT raylib_FOUND) # If there's none, fetch and build raylib
     endif()
 endif()
 
-add_executable(Zoidar main.cpp src/Sprite.cpp src/Sprite.h src/Textures.cpp src/Textures.h src/Process.cpp src/Process.h lib/Perlin-Noise.hpp src/Tilemap.cpp src/Tilemap.hpp src/WFCMap.hpp src/WorldGenerator.hpp)
+add_executable(Zoidar main.cpp src/Sprite.cpp src/Sprite.h src/Textures.cpp src/Textures.h src/Process.cpp src/Process.h lib/Perlin-Noise.hpp src/Tilemap.cpp src/Tilemap.hpp src/WFCMap.hpp src/WorldGenerator.hpp src/Messaging.hpp)
 
 target_link_libraries(${PROJECT_NAME} raylib)
 
@@ -31,3 +31,6 @@ if (APPLE)
     target_link_libraries(${PROJECT_NAME} "-framework Cocoa")
     target_link_libraries(${PROJECT_NAME} "-framework OpenGL")
 endif()
+
+# set(CMAKE_CXX_FLAGS_DEBUG "-O2")
+set(CMAKE_CXX_FLAGS_RELEASE "-O3")

@@ -7,6 +7,7 @@
 #include "src/Tilemap.hpp"
 #include "lib/Perlin-Noise.hpp"
 #include "src/WorldGenerator.hpp"
+#include "src/Messaging.hpp"
 
 constexpr Color CLEAR_COLOR = Color { 0, 0, 0, 255 };
 constexpr double UPDATE_DELAY = 0.008;
@@ -24,6 +25,13 @@ constexpr Vector2 getScreenResolution() {
 
 const int WorldWidth = 1024;
 const int WorldHeight = 1024;
+
+struct TestActor : Messaging::Actor {
+    TestActor(string id) : Actor(id) {};
+    void onMessage(Messaging::Message<shared_ptr<TestActor>> message) {
+        cout << "Test Actor called from: " << message.sender->id << endl;
+    }
+};
 
 int main()
 {
@@ -44,6 +52,13 @@ int main()
     auto time_ui_2 = (unsigned int)( time(nullptr) );
     const siv::PerlinNoise::seed_type seed_2 = time_ui_2 + time_ui;
     const siv::PerlinNoise perlin_2{ seed_2 };
+
+    auto messagebus = Messaging::Messagebus<TestActor>();
+    auto testActor = make_shared<TestActor>("foo");
+    auto testActor2 = make_shared<TestActor>("bar");
+    messagebus.subscribe("foo", testActor);
+
+    messagebus.publish("foo", testActor2);
 
     Process process1;
 
@@ -125,6 +140,10 @@ int main()
             createMap();
         }
 
+        if (IsKeyDown(KEY_Q)) {
+            messagebus.publish("foo", make_shared<TestActor>("lol"));
+        }
+
         if (mapOffset.x < 0) mapOffset.x = 0;
         if (mapOffset.y < 0) mapOffset.y = 0;
 
@@ -145,6 +164,8 @@ int main()
             }
             currentTime = now;
             process1.onUpdate(deltaTime);
+
+            messagebus.flush();
         }
         std::cout << "Update thread finished\n";
         isUpdateFinished = true;
