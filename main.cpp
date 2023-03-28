@@ -27,8 +27,8 @@ const int WorldWidth = 1024;
 const int WorldHeight = 1024;
 
 struct TestActor : Messaging::Actor {
-    TestActor(string id) : Actor(id) {};
-    void onMessage(Messaging::Message<shared_ptr<TestActor>> message) {
+    explicit TestActor(string id) : Actor(std::move(id)) {};
+    static void onMessage(const Messaging::Message<shared_ptr<TestActor>>& message) {
         cout << "Test Actor called from: " << message.sender->id << endl;
     }
 };
