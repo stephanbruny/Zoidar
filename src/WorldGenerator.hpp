@@ -203,6 +203,7 @@ public:
 
     [[nodiscard]] vector<int> generatePerlinNoise(int max, int ox, int oy, double depth = 0.033) const {
         vector<int> result;
+        result.reserve(tilemap.size());
         cout << "generate perlin noise" << endl;
         for (int i = 0; i < tilemap.size(); i++) {
             int x = i % map_width;
@@ -287,6 +288,7 @@ public:
 
     vector<int> render() {
         vector<int> result;
+        result.reserve(tilemap.size());
         for (auto &tile : tilemap) {
             result.push_back(tile.id);
         }
@@ -295,6 +297,7 @@ public:
 
     vector<int> renderUpperLayer() {
         vector<int> result;
+        result.reserve(tilemap.size());
         for (auto &tile : layer) {
             result.push_back(tile.id);
         }

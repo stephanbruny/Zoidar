@@ -11,8 +11,9 @@ Tilemap::Tilemap(int width, int height, int tile_width, int tile_height) {
     this->tile_size = { tile_height, tile_height };
     this->min_index = 0;
     const int map_size = width * height;
+    this->tiles.reserve(map_size);
     for(int i = 0; i <  map_size; i++) {
-        this->tiles.push_back(Tile { 0, 0 });
+        this->tiles.emplace_back(Tile { 0, 0 });
     }
 }
 
