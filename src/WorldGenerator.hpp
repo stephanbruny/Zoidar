@@ -93,7 +93,7 @@ const map<vector<TileType>, int> TilePatterns = {
 };
 
 const map<TileType, vector<int>> LayerTiles = {
-        { Sand, { 119, 120, 121 } },
+        { Sand, { 119, 120, 121, 153 } },
         { Grass, { 122, 123, 124 } },
         { Wood, { 125, 126, 127 } },
         { Mountain, { 136, 137, 138 } },
